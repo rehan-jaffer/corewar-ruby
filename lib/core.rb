@@ -1,15 +1,7 @@
+require_relative './core/instructions/base_instruction'
+require_relative './core/instructions/null_instruction'
+
 module Core
-  class Instruction
-
-    attr_accessor :program_id, :tag
-
-    def initialize(tag: nil)
-      @tag = tag
-    end
-  end
-
-  class NullInstruction < Instruction
-  end
 
   class ProcessQueue
     def initialize
@@ -98,7 +90,7 @@ module Core
 
     def initialize(size)
       @size = size
-      @core = Array.new(size, NullInstruction.new)
+      @core = Array.new(size, Core::Instructions::NullInstruction.new)
       @program_locations = []
     end
 

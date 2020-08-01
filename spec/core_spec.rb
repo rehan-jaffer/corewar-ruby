@@ -2,7 +2,7 @@ require "./lib/core"
 
 def null_program(size)
   0.upto(size-1).map do |i|
-    Core::NullInstruction.new(tag: "Instruction #{i}")
+    Core::Instructions::NullInstruction.new(tag: "Instruction #{i}")
   end
 end
 
@@ -22,19 +22,19 @@ describe Core::VM do
   describe "memory" do
     it "permits setting the elements of the memory" do
       core = Core::VM.new(core_size: 1024)
-      core.mem_set(0, Core::NullInstruction.new)
+      core.mem_set(0, Core::Instructions::NullInstruction.new)
     end
 
     it "allows retrieving elements of the memory" do
       core = Core::VM.new(core_size: 1024)
-      core.mem_set(0, Core::NullInstruction.new(tag: "tagged instruction"))
+      core.mem_set(0, Core::Instructions::NullInstruction.new(tag: "tagged instruction"))
       instruction = core.mem_get(0)
       expect(instruction.tag).to eq "tagged instruction"
     end
 
     it "wraps around when the memory exceeds the stated size" do
       core = Core::VM.new(core_size: 1024)
-      core.mem_set(0, Core::NullInstruction.new(tag: "tagged instruction"))
+      core.mem_set(0, Core::Instructions::NullInstruction.new(tag: "tagged instruction"))
       instruction = core.mem_get(1024)
       expect(instruction.tag).to eq "tagged instruction"
     end
@@ -65,10 +65,10 @@ describe Core::VM do
     it "permits loading a program into the memory" do
       core = Core::VM.new(core_size: 1024)
       program = Core::Program.new(
-        [Core::NullInstruction.new(tag: "Instruction #1"), Core::NullInstruction.new(tag: "Instruction #2"), Core::NullInstruction.new(tag: "Instruction #3")],
+        null_program(3),
         program_id: 1)
       core.load(program)
-      expect(core.memory.dump.map(&:tag).compact).to eq ["Instruction #1", "Instruction #2", "Instruction #3"]
+      expect(core.memory.dump.map(&:tag).compact).to eq ["Instruction 0", "Instruction 1", "Instruction 2",]
     end
 
     it "loads the program at a random location in memory" do 
@@ -93,4 +93,9 @@ describe Core::VM do
      end
 
   end
+
+  it "" do
+
+  end
+
 end
