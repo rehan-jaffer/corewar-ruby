@@ -94,8 +94,5 @@ describe Core::VM do
 
   end
 
-  it "" do
-
-  end
 
 end
