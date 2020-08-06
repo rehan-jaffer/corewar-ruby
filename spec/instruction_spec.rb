@@ -46,7 +46,7 @@ describe "Core Instructions" do
     load_address = core.load(program)
     core.boot!(preset_pc: 0)
 
-    4.times do |i|
+    5.times do |i|
       core.execute_cycle();
     end
 
