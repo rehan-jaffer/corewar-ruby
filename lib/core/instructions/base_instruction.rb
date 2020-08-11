@@ -10,6 +10,7 @@ module Core
         @mode = mode 
         @address = address
       end
+
     end
 
     class BaseInstruction
@@ -19,9 +20,26 @@ module Core
         def initialize(tag: nil)
           @tag = tag
         end
-  
-    end   
 
-  end
+        def serialize
+          "#{self.class} #{addressing_mode(source)}#{source.address} #{addressing_mode(destination)}#{destination.address}"
+        end
+
+        private
+
+          def addressing_mode(mode)
+            case mode
+              when :direct
+                "$"
+              when :immediate
+                "#"
+              when :relative
+                ""
+            end
+         end
+
+     end
+
+ end
 
 end

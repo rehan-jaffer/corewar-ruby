@@ -2,7 +2,7 @@ module Core
 
     module Instructions
   
-      class MovInstruction < BaseInstruction
+      class DatInstruction < BaseInstruction
   
           attr_accessor :source, :destination
       
@@ -12,7 +12,6 @@ module Core
           end
 
           def execute(core, source: , destination: )
-            core.memory[destination] = core.memory[source]
           end
     
       end   
