@@ -15,6 +15,10 @@ module Core
             core.process_queue.set_current(core.memory[source])
           end
     
+          def code 
+            "JMP"
+          end
+
       end   
   
     end

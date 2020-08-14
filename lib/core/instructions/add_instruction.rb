@@ -22,6 +22,10 @@ module Core
             end
           end
     
+          def code 
+            "ADD"
+          end
+
       end   
   
     end

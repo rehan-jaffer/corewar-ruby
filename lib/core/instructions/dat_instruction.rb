@@ -13,6 +13,10 @@ module Core
 
           def execute(core, source: , destination: )
           end
+
+          def code 
+            "DAT"
+          end
     
       end   
   

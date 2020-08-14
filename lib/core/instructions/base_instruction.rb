@@ -13,6 +13,15 @@ module Core
 
     end
 
+    class NullOperand 
+      attr_accessor :mode, :address 
+
+      def initialize(mode:, address:)
+        @mode = nil 
+        @address = 0
+      end
+    end
+
     class BaseInstruction
 
         attr_accessor :program_id, :tag
@@ -22,10 +31,12 @@ module Core
         end
 
         def serialize
-          "#{self.class} #{addressing_mode(source)}#{source.address} #{addressing_mode(destination)}#{destination.address}"
+          "#{self.code} #{addressing_mode(source.mode)}#{source.address} #{addressing_mode(destination.mode)}#{destination.address}"
         end
 
-        private
+        def code 
+          "UNIMPLEMENTED"
+        end
 
           def addressing_mode(mode)
             case mode
@@ -34,7 +45,7 @@ module Core
               when :immediate
                 "#"
               when :relative
-                ""
+                "@"
             end
          end
 

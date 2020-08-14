@@ -10,6 +10,14 @@ module Core
       end
     end
 
+    def bytes
+      instructions
+    end
+
+    def to_s 
+      instructions.map(&:serialize)
+    end
+
     def size
       @instructions.size
     end

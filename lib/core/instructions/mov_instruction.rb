@@ -15,6 +15,9 @@ module Core
             core.memory[destination] = core.memory[source]
           end
     
+          def code 
+            "MOV"
+          end          
       end   
   
     end
