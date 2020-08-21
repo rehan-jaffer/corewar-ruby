@@ -13,9 +13,90 @@ require_relative "./core/process_queue"
 require_relative "./core/process"
 
 module Core
+  class ExecutionContext
+    attr_accessor :process_queue, :memory, :core
 
-  class ExecutionContext 
-    attr_accessor :process_queue, :memory
+    def initialize(core, process_queue, memory)
+      @core = core
+      @process_queue = process_queue
+      @memory = memory
+    end
+  end
+
+  class ExecutionCycle
+    def initialize(context)
+      @context = context
+    end
+
+    def run()
+      instruction = fetch_instruction
+      case instruction
+      when Core::Instructions::MovInstruction
+        mov(instruction.source, instruction.destination)
+        move_to_next_instruction
+      when Core::Instructions::NullInstruction
+        kill_current_process
+      when Core::Instructions::JmpInstruction
+        set_current_program_counter(instruction.source)
+      when Core::Instructions::DatInstruction
+        kill_current_process
+      when Core::Instructions::DummyInstruction
+        move_to_next_instruction
+      when Core::Instructions::SubInstruction
+        sub(instruction.source, instruction.destination)
+        move_to_next_instruction
+      when Core::Instructions::SplInstruction
+        spl(instruction.program_id, instruction.source, instruction.destination)
+        move_to_next_instruction
+      when Core::Instructions::AddInstruction
+        instruction.execute(
+          @context.core,
+          source: instruction.source,
+          destination: instruction.destination,
+        )
+        move_to_next_instruction
+      end
+      move_to_next_process
+    rescue NoMethodError => e
+      move_to_next_process
+    rescue StandardError => e
+      kill_current_process
+      move_to_next_process
+    end
+
+    private
+
+    def set_current_program_counter(operand)
+      @context.process_queue.set_current(@context.core.translate_address(operand))
+    end
+
+    def fetch_instruction
+      @context.memory[@context.process_queue.current]
+    end
+
+    def move_to_next_instruction
+      @context.process_queue.update_program_counter(@context.memory.size)
+    end
+
+    def move_to_next_process
+      @context.process_queue.update_queue_index
+    end
+
+    def kill_current_process
+      @context.process_queue.kill(@context.process_queue.current)
+    end
+
+    def spl(program_id, source, destination)
+      Core::Instructions::SplInstruction.new(context: @context, program_id: program_id).execute(source, destination)
+    end
+
+    def sub(source, destination)
+      Core::Instructions::SubInstruction.new(context: @context).execute(source, destination)
+    end
+
+    def mov(source, destination)
+      Core::Instructions::MovInstruction.new(context: @context).execute(source, destination)
+    end
   end
 
   class VM
@@ -32,39 +113,10 @@ module Core
     end
 
     def execute_cycle
-      instruction = @memory[@process_queue.current]
-      case instruction
-      when Core::Instructions::MovInstruction
-        instruction.execute(
-          self,
-          source: translate_address(instruction.source),
-          destination: translate_address(instruction.destination),
-        )
-        @process_queue.update_program_counter(@memory.size)
-      when Core::Instructions::NullInstruction
-        @process_queue.kill(@process_queue.current)
-      when Core::Instructions::JmpInstruction
-        @process_queue.set_current(translate_address(instruction.source))
-      when Core::Instructions::DatInstruction
-        @process_queue.kill(@process_queue.current)
-      when Core::Instructions::DummyInstruction
-        # do nothing
-        @process_queue.update_program_counter(@memory.size)
-      when Core::Instructions::AddInstruction
-        instruction.execute(
-          self,
-          source: instruction.source,
-          destination: instruction.destination,
-        )
-        @process_queue.update_program_counter(@memory.size)
-      end
+      context = Core::ExecutionContext.new(self, @process_queue, @memory)
+      cycle = Core::ExecutionCycle.new(context)
+      cycle.run
       remove_dead_processes
-      @process_queue.update_queue_index
-    rescue NoMethodError => e
-      @process_queue.update_queue_index
-    rescue StandardError => e
-      @process_queue.kill(@process_queue.current)
-      @process_queue.update_queue_index
     end
 
     def load(program)
@@ -88,11 +140,12 @@ module Core
 
     private
 
-    def current_context 
+    def current_context
       Core::ExecutionContext.new(process_queue, memory)
     end
 
     def remove_dead_processes
+      @process_queue.remove_dead_processes(alive: @memory.programs)
     end
 
     def log(instruction)

@@ -19,6 +19,10 @@ module Core
       (index < 0) ? @core[@size + index] : @core[index % @size]
     end
 
+    def programs 
+      @core.map(&:program_id).compact.uniq
+    end
+
     def load(program)
       program_location = nil
 

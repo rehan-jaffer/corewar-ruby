@@ -24,8 +24,17 @@ module Core
     end
 
     def kill(id)
-      current_process.alive = false
-      @processes = @processes.select { |process| process != current_process.program_id }
+      p = find_process_by_id(id) || current_process
+      p.alive = false
+      remove_from_process_list(id)
+    end
+
+    def remove_dead_processes(alive: [])
+      @queue.each do |process| 
+        if !alive.include?(process.program_id)
+          process.alive = false
+        end
+      end
     end
 
     def update_program_counter(memory_size)
@@ -52,4 +61,16 @@ module Core
       @queue.select { |program| program.alive? }.size
     end
   end
+
+  private 
+
+  def find_process_by_id(id)
+    @queue.find { |p| p.program_id == id }
+#      current_process.alive = false
+  end
+
+  def remove_from_process_list(id)
+    @processes = @processes.select { |process| process != id }
+  end
+
 end
